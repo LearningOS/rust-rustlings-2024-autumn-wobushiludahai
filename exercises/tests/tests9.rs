@@ -36,14 +36,19 @@ extern "Rust" {
 
 mod Foo {
     // No `extern` equals `extern "Rust"`.
-    fn my_demo_function(a: u32) -> u32 {
+    pub fn my_demo_function(a: u32) -> u32 {
         a
+    }
+
+    pub fn my_demo_function_alias(a: u32) -> u32 {
+        a + 1
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use crate::Foo::my_demo_function;
+    use crate::Foo::my_demo_function_alias;
 
     #[test]
     fn test_success() {
