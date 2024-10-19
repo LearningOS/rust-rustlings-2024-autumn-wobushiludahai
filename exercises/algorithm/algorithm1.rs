@@ -6,7 +6,6 @@
 
 use std::fmt::{self, Display, Formatter};
 use std::ptr::NonNull;
-use std::vec::*;
 
 #[derive(Debug)]
 struct Node<T> {
@@ -29,13 +28,14 @@ struct LinkedList<T> {
     end: Option<NonNull<Node<T>>>,
 }
 
-impl<T> Default for LinkedList<T> {
+impl<T: std::cmp::PartialOrd> Default for LinkedList<T> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<T> LinkedList<T> {
+impl<T: std::cmp::PartialOrd> LinkedList<T>
+{
     pub fn new() -> Self {
         Self {
             length: 0,
@@ -69,15 +69,64 @@ impl<T> LinkedList<T> {
             },
         }
     }
-	pub fn merge(list_a:LinkedList<T>,list_b:LinkedList<T>) -> Self
-	{
-		//TODO
-		Self {
-            length: 0,
-            start: None,
-            end: None,
+    pub fn merge(mut list_a: LinkedList<T>, mut list_b: LinkedList<T>) -> Self {
+        let mut merged_list = LinkedList::new();
+
+        while list_a.length > 0 && list_b.length > 0 {
+            if let (Some(a), Some(b)) = (list_a.start, list_b.start) {
+                unsafe {
+                    let a_val = &(*a.as_ptr()).val;
+                    let b_val = &(*b.as_ptr()).val;
+
+                    if a_val <= b_val {
+                        // Take node from list_a
+                        if let Some(node) = list_a.pop_front() {
+                            merged_list.add(node);
+                        }
+                    } else {
+                        // Take node from list_b
+                        if let Some(node) = list_b.pop_front() {
+                            merged_list.add(node);
+                        }
+                    }
+                }
+            }
         }
-	}
+
+        // Append any remaining nodes from list_a
+        while list_a.length > 0 {
+            if let Some(node) = list_a.pop_front() {
+                merged_list.add(node);
+            }
+        }
+
+        // Append any remaining nodes from list_b
+        while list_b.length > 0 {
+            if let Some(node) = list_b.pop_front() {
+                merged_list.add(node);
+            }
+        }
+
+        merged_list
+    }
+
+    pub fn pop_front(&mut self) -> Option<T> {
+        if let Some(start_ptr) = self.start {
+            unsafe {
+                let start_node = Box::from_raw(start_ptr.as_ptr());
+                self.start = start_node.next;
+
+                if self.start.is_none() {
+                    self.end = None;
+                }
+
+                self.length -= 1;
+                Some(start_node.val)
+            }
+        } else {
+            None
+        }
+    }
 }
 
 impl<T> Display for LinkedList<T>
