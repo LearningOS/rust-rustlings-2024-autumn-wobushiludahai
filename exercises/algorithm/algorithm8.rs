@@ -66,23 +66,34 @@ impl<T> myStack<T> {
 			q2:Queue::<T>::new()
         }
     }
+
     pub fn push(&mut self, elem: T) {
-        //TODO
+        self.q1.enqueue(elem);
+
+        while !self.q2.is_empty() {
+            self.q1.enqueue(self.q2.dequeue().unwrap());
+        }
+
+        std::mem::swap(&mut self.q1, &mut self.q2);
     }
+
     pub fn pop(&mut self) -> Result<T, &str> {
-        //TODO
+        if !self.q2.is_empty() {
+            return Ok(self.q2.dequeue().unwrap());
+        }
+
 		Err("Stack is empty")
     }
+
     pub fn is_empty(&self) -> bool {
-		//TODO
-        true
+        self.q2.is_empty()
     }
 }
 
 #[cfg(test)]
 mod tests {
 	use super::*;
-	
+
 	#[test]
 	fn test_queue(){
 		let mut s = myStack::<i32>::new();
